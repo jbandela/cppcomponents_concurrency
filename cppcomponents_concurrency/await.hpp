@@ -63,11 +63,13 @@ namespace cppcomponents{
 			void* pv_;
 
 			template<class T>
-			T& get(){
+			T get(){
 				if (error_){
 					cppcomponents::error_mapper::exception_from_error_code(error_);
 				}
-				return *static_cast<T*>(pv_);
+				auto p = static_cast<cppcomponents::portable_base*>(pv_);
+				T ret{ cppcomponents::reinterpret_portable_base<typename T::interface_t>(p), true };
+				return ret;
 			}
 		};
 
@@ -77,11 +79,12 @@ namespace cppcomponents{
 		};
 #pragma pack(pop)
 
-		typedef std::function < void ()> awaiter_func_type;
+		typedef cppcomponents::function < void ()> awaiter_func_type;
 
 		void execute_awaiter_func(void* v){
 			if (!v) return;
-			auto f = *static_cast<awaiter_func_type*>(v);
+			auto p = static_cast<cppcomponents::portable_base*>(v);
+			awaiter_func_type f{ cppcomponents::reinterpret_portable_base<awaiter_func_type::interface_t>(p), true };
 			f();
 		}
 
@@ -99,17 +102,16 @@ namespace cppcomponents{
 
 		template<class R>
 		static func_type get_function(CoType co1,  use < IFuture < R >> t){
-			func_type retfunc([co1, t]()mutable{
+			func_type  retfunc = cppcomponents::make_function<func_type>([co1, t]()mutable{
 				auto co = co1;
 				co1 = nullptr;
 				t.Then([co](use < IFuture < R >> et)mutable{
 					detail::ret_type ret;
 					ret.error_ = 0;
 					ret.pv_ = nullptr;
-					ret.pv_ = &et;
+					ret.pv_ = et.get_portable_base();
 					co(&ret);
-					
-						detail::execute_awaiter_func(co.Get());
+					detail::execute_awaiter_func(co.Get());
 					
 				});
 			});
@@ -117,19 +119,17 @@ namespace cppcomponents{
 		}
 		template<class R>
 		static func_type get_function(CoType co1, use<IExecutor> executor, use < IFuture < R >> t){
-			func_type retfunc([co1, t,executor]()mutable{
+			func_type retfunc = cppcomponents::make_function<func_type>([co1, t,executor]()mutable{
 				auto co = co1;
 				co1 = nullptr;
 				t.Then(executor,[co](use < IFuture < R >> et)mutable{
 					detail::ret_type ret;
 					ret.error_ = 0;
 					ret.pv_ = nullptr;
-					ret.pv_ = &et;
+					ret.pv_ = et.get_portable_base();
 					co(&ret);
 					auto p = co.Get();
-					
-						detail::execute_awaiter_func(p);
-					
+					detail::execute_awaiter_func(p);
 				});
 			});
 
@@ -198,7 +198,7 @@ namespace cppcomponents{
 			assert(ca);
 			auto ph = awaiter::get_tls();
 			reset_tls(ph);
-			ca(&retfunc);
+			ca(retfunc.get_portable_base());
 			set_tls(ph);
 			return static_cast<detail::ret_type*>(ca.Get())->get < use < IFuture<R >> >();
 		}
@@ -212,7 +212,7 @@ namespace cppcomponents{
 				assert(ca);
 				auto ph = awaiter::get_tls();
 				reset_tls(ph);
-				ca(&retfunc);
+				ca(retfunc.get_portable_base());
 				set_tls(ph);
 				return static_cast<detail::ret_type*>(ca.Get())->get < use < IFuture<R >> >();
 		}
