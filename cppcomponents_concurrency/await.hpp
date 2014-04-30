@@ -75,6 +75,7 @@ namespace cppcomponents{
 
 		struct co_prev_holder{
 			co_prev_holder* prev_;
+			co_prev_holder* next_;
 			cppcomponents::portable_base* p_;
 		};
 #pragma pack(pop)
@@ -98,7 +99,7 @@ namespace cppcomponents{
 		typedef detail::awaiter_func_type func_type;
 		co_ptr co_;
 		typedef use<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr> CoType;
-		std::unique_ptr<detail::co_prev_holder> pholder;
+		detail::co_prev_holder pholder;
 
 		template<class R>
 		static func_type get_function(CoType co1,  use < IFuture < R >> t){
@@ -142,6 +143,13 @@ namespace cppcomponents{
 		}
 		static void set_tls(detail::co_prev_holder* ph){
 			ph->prev_ = get_tls();
+			if (ph->prev_){
+				ph->next_ = ph->prev_->next_;
+				ph->prev_->next_ = ph;
+			}
+			if (ph->next_){
+				ph->next_->prev_ = ph;
+			}
 			cppcomponents_async_coroutine_wrapper::Coroutine::SetThreadLocalAwaiter(ph);
 		}
 
@@ -149,24 +157,38 @@ namespace cppcomponents{
 			auto ph_old = get_tls();
 			if (ph_old == ph){
 				cppcomponents_async_coroutine_wrapper::Coroutine::SetThreadLocalAwaiter(ph->prev_);
+				if (ph->prev_){
+					ph->prev_->next_ = nullptr;
+				}
+				ph->prev_ = nullptr;
 			}
 	
 		}
 
 
-
+		void remove_pholder_links(){
+			if (pholder.prev_){
+				pholder.prev_->next_ = pholder.next_;
+			}
+			if (pholder.next_){
+				pholder.next_->prev_ = pholder.prev_;
+			}
+			pholder.prev_ = nullptr;
+			pholder.next_ = nullptr;
+		}
 
 	public:
-		awaiter(co_ptr c) :pholder(new detail::co_prev_holder)
+		awaiter(co_ptr c)
 		{
-			pholder->p_ = c->coroutine_caller_->get_portable_base();
-			set_tls(pholder.get());
+			pholder.p_ = c->coroutine_caller_->get_portable_base();
+			pholder.next_ = nullptr;
+			pholder.prev_ = nullptr;
+			set_tls(&pholder);
 		}
 
 		~awaiter(){
-			if (pholder){
-				reset_tls(pholder.get());
-			}
+				reset_tls(&pholder);
+				remove_pholder_links();
 		}
 
 		// Non-copyable
@@ -175,9 +197,24 @@ namespace cppcomponents{
 
 		// Ugly movable
 		awaiter(awaiter& other){
-			pholder = std::move(other.pholder);
-			assert(!other.pholder);
-			
+			pholder.next_ = other.pholder.next_;
+			pholder.prev_ = other.pholder.prev_;
+			pholder.p_ = other.pholder.p_;
+
+			other.remove_pholder_links();
+			if (pholder.next_){
+				pholder.next_->prev_ = &pholder;
+			}
+
+			if (pholder.prev_){
+				pholder.prev_->next_ = &pholder;
+			}
+
+			other.pholder.p_ = nullptr;
+			if (get_tls() == &other.pholder){
+				
+				cppcomponents_async_coroutine_wrapper::Coroutine::SetThreadLocalAwaiter(&pholder);
+			}
 		}
 
 		// Move assignment
