@@ -90,10 +90,10 @@ struct ImplementCoroutineVoidPtr : public implement_runtime_class < ImplementCor
 	{
 		
 		co_(v);
-		printf("In ctor %d\n", ++g_i);
+		//printf("In ctor %d\n", ++g_i);
 	};
 	~ImplementCoroutineVoidPtr(){
-		printf("In dtor %d\n", --g_i);
+		//printf("In dtor %d\n", --g_i);
 	}
 	void* Get(){
 		return co_.get();

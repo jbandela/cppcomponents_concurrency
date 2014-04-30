@@ -46,17 +46,6 @@ namespace cppcomponents{
 #endif
 #undef PPL_HELPER_OUTPUT_ENTER_EXIT
 
-
-		struct coroutine_holder : std::enable_shared_from_this<coroutine_holder>{
-			PPL_HELPER_ENTER_EXIT;
-			typedef cppcomponents_async_coroutine_wrapper::CoroutineVoidPtr co_type;
-			std::unique_ptr<co_type> coroutine_;
-			co_type::CallerType* coroutine_caller_;
-			use<InterfaceUnknown> future_;
-			coroutine_holder() : coroutine_(), coroutine_caller_(nullptr){}
-
-		};
-
 #pragma pack(push, 1)
 		struct ret_type{
 			std::int32_t error_;
@@ -95,9 +84,7 @@ namespace cppcomponents{
 
 
 	class awaiter{
-		typedef detail::coroutine_holder* co_ptr;
 		typedef detail::awaiter_func_type func_type;
-		co_ptr co_;
 		typedef use<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr> CoType;
 		detail::co_prev_holder pholder;
 
@@ -178,9 +165,9 @@ namespace cppcomponents{
 		}
 
 	public:
-		awaiter(co_ptr c)
+		awaiter(CoType& c)
 		{
-			pholder.p_ = c->coroutine_caller_->get_portable_base();
+			pholder.p_ = c.get_portable_base();
 			pholder.next_ = nullptr;
 			pholder.prev_ = nullptr;
 			set_tls(&pholder);
@@ -288,13 +275,12 @@ namespace cppcomponents{
 		};
 
 		template<class F>
-		class simple_async_function_holder : public coroutine_holder{
+		class simple_async_function_holder{
 
 
 			F f_;
 			typedef typename std::result_of<F(awaiter)>::type return_type;
-			typedef use<IFuture<return_type>> task_t;
-			typedef std::function<void()> func_type;
+			Future<return_type> future_;
 
 
 			static void coroutine_function(cppcomponents::use<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr> ca){
@@ -302,30 +288,26 @@ namespace cppcomponents{
 
 				auto p = ca.Get();
 				auto pthis = reinterpret_cast<simple_async_function_holder*>(p);
-				pthis->coroutine_caller_ = &ca;
 				auto promise = make_promise<return_type>();
-				pthis->future_ = promise.template QueryInterface < InterfaceUnknown>();
+				pthis->future_ = promise.template QueryInterface < IFuture<return_type>>();
 				try{
 					PPL_HELPER_ENTER_EXIT;
-					awaiter helper(pthis);
+					awaiter helper(ca);
 					promise.SetResultOf(std::bind(pthis->f_, helper));
-					//ca.ReleaseOtherCoroutine();
 					ca(nullptr);
 				}
 				catch (std::exception& e){
-					//ca.ReleaseOtherCoroutine();
 					auto ec = cppcomponents::error_mapper::error_code_from_exception(e);
 					promise.SetError(ec);
-					//ca.ReleaseOtherCoroutine();
 					ca(nullptr);
 				}
 			}
 		public:
 			simple_async_function_holder(F f) : f_(f){}
 
-			task_t run(){
-				coroutine_.reset(new coroutine_holder::co_type(cppcomponents::make_delegate<cppcomponents_async_coroutine_wrapper::CoroutineHandler>(coroutine_function), this));
-				detail::execute_awaiter_func(coroutine_->Get());
+			Future<return_type> run(){
+				cppcomponents_async_coroutine_wrapper::CoroutineVoidPtr co(cppcomponents::make_delegate<cppcomponents_async_coroutine_wrapper::CoroutineHandler>(coroutine_function), this);
+				detail::execute_awaiter_func(co.Get());
 
 				return this->future_.template QueryInterface<IFuture<return_type>>();
 
@@ -343,8 +325,8 @@ namespace cppcomponents{
 
 		template<class F>
 		use<IFuture<typename std::result_of<F(awaiter)>::type>> do_async(F f){
-			auto ret = std::make_shared<detail::simple_async_function_holder<F>>(f);
-			return ret->run();
+			detail::simple_async_function_holder<F> async_func_holder(f);
+			return async_func_holder.run();
 		}
 
 
@@ -441,6 +423,21 @@ namespace cppcomponents{
 	R await(use<IExecutor> executor, use < IFuture < R >> t){
 		return await_as_future(executor, t).Get();
 	}
+
+
+	template<class F>
+	use<IFuture<typename std::result_of<F()>::type>> co_async(use<IExecutor> e, F f){
+		auto func = resumable([f](awaiter){return f(); });
+		return async(e,func);
+
+
+	}
+	template<class F>
+	use<IFuture<typename std::result_of<F()>::type>> co_async(use<IExecutor> e, use<IExecutor> then_executor, F f){
+		auto func = resumable([f](awaiter){return f(); });
+		return async(e,then_executor, func);
+	}
+	
 }
 
 

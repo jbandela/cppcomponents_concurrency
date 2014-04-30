@@ -15,7 +15,7 @@ namespace{
 	MemLeakCheckInit mlcinit;
 }
 #endif
-#define PPL_HELPER_OUTPUT_ENTER_EXIT
+//#define PPL_HELPER_OUTPUT_ENTER_EXIT
 #include <gtest/gtest.h>
 #include "../cppcomponents_concurrency/await.hpp"
 
