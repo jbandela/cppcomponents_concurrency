@@ -9,6 +9,7 @@ using namespace cppcomponents_async_coroutine_wrapper;
 #define BOOST_COROUTINES_OLD
 
 #include <boost/coroutine/all.hpp>
+#include <stdio.h>
 
 typedef boost::coroutines::coroutine<void*(void*) > co_type;
 
@@ -51,9 +52,9 @@ typedef cppcomponents::runtime_class<CoroutineCallerId, object_interfaces<ICorou
 
 struct ImplementCaller : public implement_runtime_class < ImplementCaller, Caller_t>
 {
-	use<InterfaceUnknown> co_;
+	cppcomponents::portable_base* pco_;
 	co_type* ca_;
-	ImplementCaller(co_type* ca,use<InterfaceUnknown> c) : ca_(ca), co_(c){};
+	ImplementCaller(co_type* ca, cppcomponents::portable_base* p) : ca_(ca), pco_(p){};
 
 	void* Get(){
 		return ca_->get();
@@ -66,15 +67,15 @@ struct ImplementCaller : public implement_runtime_class < ImplementCaller, Calle
 
 
 	cppcomponents::use<cppcomponents::InterfaceUnknown> GetOtherCoroutine(){
-		return co_;
+		cppcomponents::use<cppcomponents::InterfaceUnknown> ret(cppcomponents::reinterpret_portable_base<cppcomponents::InterfaceUnknown>(pco_), true);
+		return ret;
 	}
-	void ReleaseOtherCoroutine(){
-		co_ = nullptr;
-	}
+
 
 };
 CPPCOMPONENTS_REGISTER(ImplementCaller)
 
+std::atomic<int> g_i = 0;
 struct ImplementCoroutineVoidPtr : public implement_runtime_class < ImplementCoroutineVoidPtr, CoroutineVoidPtr_t>
 {
 	co_type co_;
@@ -84,12 +85,16 @@ struct ImplementCoroutineVoidPtr : public implement_runtime_class < ImplementCor
 		auto pthis = static_cast<ImplementCoroutineVoidPtr*>(ca.get());
 		ca(nullptr);
 		
-			h(ImplementCaller::create(&ca,pthis->QueryInterface<InterfaceUnknown>()).QueryInterface<ICoroutineVoidPtr>()); 
+		h(ImplementCaller::create(&ca, pthis->get_unknown_portable_base()).QueryInterface<ICoroutineVoidPtr>());
 	}, this)
 	{
+		
 		co_(v);
+		printf("In ctor %d\n", ++g_i);
 	};
-
+	~ImplementCoroutineVoidPtr(){
+		printf("In dtor %d\n", --g_i);
+	}
 	void* Get(){
 		return co_.get();
 	}
@@ -102,7 +107,7 @@ struct ImplementCoroutineVoidPtr : public implement_runtime_class < ImplementCor
 		return nullptr;
 	}
 
-	void ReleaseOtherCoroutine(){}
+
 
 
 };

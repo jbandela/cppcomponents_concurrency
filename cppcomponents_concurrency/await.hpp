@@ -98,34 +98,28 @@ namespace cppcomponents{
 		std::unique_ptr<detail::co_prev_holder> pholder;
 
 		template<class R>
-		static func_type get_function(CoType co,  use < IFuture < R >> t){
-			func_type retfunc([co, t]()mutable{
+		static func_type get_function(CoType co1,  use < IFuture < R >> t){
+			func_type retfunc([co1, t]()mutable{
+				auto co = co1;
+				co1 = nullptr;
 				t.Then([co](use < IFuture < R >> et)mutable{
 					detail::ret_type ret;
 					ret.error_ = 0;
 					ret.pv_ = nullptr;
 					ret.pv_ = &et;
 					co(&ret);
-					try{
-						
+					
 						detail::execute_awaiter_func(co.Get());
-						co = nullptr;
-					}
-					catch (std::exception& e){
-						ret.error_ = cppcomponents::error_mapper::error_code_from_exception(e);
-						ret.pv_ = nullptr;
-						co(&ret);
-						co = nullptr;
-						throw;
-					}
-					co = nullptr;
+					
 				});
 			});
 			return retfunc;
 		}
 		template<class R>
-		static func_type get_function(CoType co, use<IExecutor> executor, use < IFuture < R >> t){
-			func_type retfunc([co, t,executor]()mutable{
+		static func_type get_function(CoType co1, use<IExecutor> executor, use < IFuture < R >> t){
+			func_type retfunc([co1, t,executor]()mutable{
+				auto co = co1;
+				co1 = nullptr;
 				t.Then(executor,[co](use < IFuture < R >> et)mutable{
 					detail::ret_type ret;
 					ret.error_ = 0;
@@ -133,17 +127,9 @@ namespace cppcomponents{
 					ret.pv_ = &et;
 					co(&ret);
 					auto p = co.Get();
-					try{
+					
 						detail::execute_awaiter_func(p);
-						co = nullptr;
-					}
-					catch (std::exception& e){
-						ret.error_ = cppcomponents::error_mapper::error_code_from_exception(e);
-						ret.pv_ = nullptr;
-						co(&ret);
-						co = nullptr;
-						throw;
-					}
+					
 				});
 			});
 
@@ -293,7 +279,7 @@ namespace cppcomponents{
 					//ca.ReleaseOtherCoroutine();
 					auto ec = cppcomponents::error_mapper::error_code_from_exception(e);
 					promise.SetError(ec);
-					
+					//ca.ReleaseOtherCoroutine();
 					ca(nullptr);
 				}
 			}

@@ -17,9 +17,8 @@ namespace cppcomponents_async_coroutine_wrapper{
 	void Call(void*);
 
 	cppcomponents::use<cppcomponents::InterfaceUnknown> GetOtherCoroutine();
-	void ReleaseOtherCoroutine();
 
-	CPPCOMPONENTS_CONSTRUCT(ICoroutineVoidPtr, Get, Call, GetOtherCoroutine, ReleaseOtherCoroutine);
+	CPPCOMPONENTS_CONSTRUCT(ICoroutineVoidPtr, Get, Call, GetOtherCoroutine);
 
 	CPPCOMPONENTS_INTERFACE_EXTRAS(ICoroutineVoidPtr){
 		typedef cppcomponents::use<ICoroutineVoidPtr> CallerType;
