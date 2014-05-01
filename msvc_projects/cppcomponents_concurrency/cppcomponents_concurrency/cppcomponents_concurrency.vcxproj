@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\cppcomponents_concurrency\implementation\cppcomponents_async_coroutine_wrapper_dll.cpp" />
     <ClCompile Include="..\..\..\implementation\cppcomponents_concurrency.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -427,15 +427,15 @@ namespace cppcomponents{
 
 	template<class F>
 	use<IFuture<typename std::result_of<F()>::type>> co_async(use<IExecutor> e, F f){
-		auto func = resumable([f](awaiter){return f(); });
-		return async(e,func);
+		auto func = resumable([f](awaiter)mutable{return f(); });
+		return async(e,func).Unwrap();
 
 
 	}
 	template<class F>
 	use<IFuture<typename std::result_of<F()>::type>> co_async(use<IExecutor> e, use<IExecutor> then_executor, F f){
-		auto func = resumable([f](awaiter){return f(); });
-		return async(e,then_executor, func);
+		auto func = resumable([f](awaiter)mutable{return f(); });
+		return async(e,then_executor, func).Unwrap();
 	}
 	
 }

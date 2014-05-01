@@ -259,3 +259,43 @@ TEST(Test_multithread, coroutine) {
 		t.join();
 	}
 }
+
+#include <cppcomponents/channel.hpp>
+
+void writer(cppcomponents::Channel<int> chan){
+	for (int i = 0; i < 10; ++i){
+		cppcomponents::await(chan.Write(i));
+	}
+	chan.Complete();
+}
+
+int reader(cppcomponents::Channel<int> chan){
+	int sum = 0;
+	for (;;){
+		auto f = cppcomponents::await_as_future(chan.Read());
+		if (f.ErrorCode()) break;
+		sum += f.Get();
+	}
+	return sum;
+}
+
+TEST(Async, co_async){
+
+	std::atomic<bool> done{ false };
+
+	auto e = launch_on_new_thread_executor::create().QueryInterface<cppcomponents::IExecutor>();
+	int sum = 0;
+	auto func = [&](){
+		auto chan = cppcomponents::make_channel<int>();
+		cppcomponents::co_async(e, e, std::bind(writer,chan));
+		sum = cppcomponents::await(co_async(e, [chan](){return reader(chan); }));
+		done.store(true);
+	};
+
+	cppcomponents::co_async(e, func);
+
+	// busy wait
+	while (done.load() == false);
+
+	EXPECT_EQ(45,sum);
+}

@@ -18,9 +18,6 @@
     <ClCompile Include="..\..\..\implementation\cppcomponents_concurrency.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\cppcomponents_concurrency\implementation\cppcomponents_async_coroutine_wrapper_dll.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\cppcomponents_concurrency\await.hpp">
