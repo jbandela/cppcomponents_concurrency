@@ -74,7 +74,7 @@ namespace cppcomponents{
 		void execute_awaiter_func(void* v){
 			if (!v) return;
 			auto p = static_cast<cppcomponents::portable_base*>(v);
-			awaiter_func_type f{ cppcomponents::reinterpret_portable_base<awaiter_func_type::interface_t>(p), true };
+			awaiter_func_type f{ cross_compiler_interface::cross_conversion<awaiter_func_type>::to_original_type(p) };
 			f();
 		}
 
@@ -222,7 +222,7 @@ namespace cppcomponents{
 			assert(ca);
 			auto ph = awaiter::get_tls();
 			reset_tls(ph);
-			ca(retfunc.get_portable_base());
+			ca(cross_compiler_interface::cross_conversion<decltype(retfunc)>::to_converted_type(retfunc));
 			set_tls(ph);
 			return static_cast<detail::ret_type*>(ca.Get())->get < use < IFuture<R >> >();
 		}
@@ -236,7 +236,7 @@ namespace cppcomponents{
 				assert(ca);
 				auto ph = awaiter::get_tls();
 				reset_tls(ph);
-				ca(retfunc.get_portable_base());
+				ca(cross_compiler_interface::cross_conversion<decltype(retfunc)>::to_converted_type(retfunc));
 				set_tls(ph);
 				return static_cast<detail::ret_type*>(ca.Get())->get < use < IFuture<R >> >();
 		}
