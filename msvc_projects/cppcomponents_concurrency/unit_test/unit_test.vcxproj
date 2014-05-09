@@ -45,7 +45,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)..\testing\test\external\googletest-read-only\;$(SolutionDir)..\testing\test\external\googletest-read-only\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)..\..\testing\test\external\googletest-read-only\;$(SolutionDir)..\..\testing\test\external\googletest-read-only\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
