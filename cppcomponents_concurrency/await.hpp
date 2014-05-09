@@ -441,4 +441,15 @@ namespace cppcomponents{
 }
 
 
+//namespace{
+//	struct cppcomponents_concurrency_init{
+//		cppcomponents_concurrency_init(){
+//			cppcomponents::awaiter::get_tls();
+//		}
+//	};
+//
+//	cppcomponents_concurrency_init cppcomponents_concurrency_init_instance;
+//}
+
+
 #endif

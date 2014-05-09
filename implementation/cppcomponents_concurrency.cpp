@@ -46,7 +46,7 @@ SYSTEM_INFO info = boost::coroutines::detail::system_info();
 
 #endif
 
-inline std::string CoroutineCallerId(){ return "cppcomponents_concurrency!CoroutineCaller"; }
+inline const char* CoroutineCallerId(){ return "cppcomponents_concurrency!CoroutineCaller"; }
 
 typedef cppcomponents::runtime_class<CoroutineCallerId, object_interfaces<ICoroutineVoidPtr>, factory_interface<NoConstructorFactoryInterface>> Caller_t;
 

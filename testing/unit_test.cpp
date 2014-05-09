@@ -59,7 +59,7 @@ struct ICounter : public cppcomponents::define_interface < cppcomponents::uuid<0
 
 
 
-inline std::string launch_on_new_thread_executor_id(){ return "launch_on_new_thread"; }
+inline const char* launch_on_new_thread_executor_id(){ return "launch_on_new_thread"; }
 typedef cppcomponents::runtime_class < launch_on_new_thread_executor_id, cppcomponents::object_interfaces<cppcomponents::IExecutor, ICounter>,
 	cppcomponents::factory_interface < cppcomponents::NoConstructorFactoryInterface >> launch_on_new_thread_executor_t;
 

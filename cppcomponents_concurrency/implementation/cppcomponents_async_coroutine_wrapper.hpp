@@ -40,7 +40,7 @@ struct ICoroutineVoidPtrFactory : public cppcomponents::define_interface < cppco
 	CPPCOMPONENTS_CONSTRUCT(ICoroutineVoidPtrFactory, Create);
 };
 
-inline std::string CoroutineVoidPtrId(){ return "cppcomponents_concurrency!CoroutineVoidPtr"; }
+inline const char* CoroutineVoidPtrId(){ return "cppcomponents_concurrency!CoroutineVoidPtr"; }
 
 typedef cppcomponents::runtime_class<CoroutineVoidPtrId, cppcomponents::object_interfaces<ICoroutineVoidPtr>, cppcomponents::factory_interface<ICoroutineVoidPtrFactory>> CoroutineVoidPtr_t;
 typedef cppcomponents::use_runtime_class<CoroutineVoidPtr_t> CoroutineVoidPtr;
@@ -55,7 +55,7 @@ struct ICoroutineStatic : public cppcomponents::define_interface<cppcomponents::
 
 	CPPCOMPONENTS_CONSTRUCT(ICoroutineStatic,GetThreadLocalAwaiter,SetThreadLocalAwaiter)
 };
-inline std::string CoroutineStaticId(){ return "cppcomponents_concurrency!CoroutineStatic"; }
+inline const char* CoroutineStaticId(){ return "cppcomponents_concurrency!CoroutineStatic"; }
 typedef cppcomponents::runtime_class<CoroutineStaticId, cppcomponents::static_interfaces<ICoroutineStatic>, cppcomponents::factory_interface<cppcomponents::NoConstructorFactoryInterface>> Coroutine_t;
 typedef cppcomponents::use_runtime_class<Coroutine_t> Coroutine;
 }
