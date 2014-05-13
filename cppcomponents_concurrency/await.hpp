@@ -217,7 +217,7 @@ namespace cppcomponents{
 			if (t.Ready()){
 				return t;
 			}
-			auto retfunc = get_function(ca.GetOtherCoroutine().QueryInterface<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr>(),t);
+			auto retfunc = get_function(ca.GetOtherCoroutine().template QueryInterface<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr>(),t);
 			PPL_HELPER_ENTER_EXIT;
 			assert(ca);
 			auto ph = awaiter::get_tls();
@@ -231,7 +231,7 @@ namespace cppcomponents{
 				if (t.Ready()){
 					return t;
 				}
-				auto retfunc = get_function(ca.GetOtherCoroutine().QueryInterface<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr>(), executor, t);
+				auto retfunc = get_function(ca.GetOtherCoroutine().template QueryInterface<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr>(), executor, t);
 				PPL_HELPER_ENTER_EXIT;
 				assert(ca);
 				auto ph = awaiter::get_tls();
