@@ -54,7 +54,7 @@ struct ICounter : public cppcomponents::define_interface < cppcomponents::uuid<0
 	std::uint64_t Decrement();
 	std::uint64_t Count();
 
-	CPPCOMPONENTS_CONSTRUCT(ICounter, Increment, Decrement, Count);
+	CPPCOMPONENTS_CONSTRUCT(ICounter, Increment, Decrement, Count)
 };
 
 

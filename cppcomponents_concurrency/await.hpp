@@ -318,7 +318,7 @@ namespace cppcomponents{
 					std::bind(f_, std::forward<T>(t)...));
 			}
 
-			do_async_functor(F f) : f_{ f }{}
+			do_async_functor(F f) : f_( f ){}
 
 
 		};
