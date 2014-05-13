@@ -179,36 +179,9 @@ namespace cppcomponents{
 		}
 
 		// Non-copyable
-		//awaiter(const awaiter&) = delete;
-		awaiter& operator=(const awaiter&) {
-
-			assert(false);
-			throw std::runtime_error("Invalid awaiter copy");
-		};
-
-		// Ugly movable
-		awaiter(awaiter& other){
-			pholder.next_ = other.pholder.next_;
-			pholder.prev_ = other.pholder.prev_;
-			pholder.p_ = other.pholder.p_;
-
-			other.remove_pholder_links();
-			if (pholder.next_){
-				pholder.next_->prev_ = &pholder;
-			}
-
-			if (pholder.prev_){
-				pholder.prev_->next_ = &pholder;
-			}
-
-			other.pholder.p_ = nullptr;
-			if (get_tls() == &other.pholder){
-
-				cppcomponents_async_coroutine_wrapper::Coroutine::SetThreadLocalAwaiter(&pholder);
-			}
-		}
-
-		// Move assignment
+		awaiter(const awaiter&) = delete;
+		awaiter& operator=(const awaiter&) = delete;
+		awaiter(awaiter&&) = delete; 				
 		awaiter& operator=(awaiter&& other) = delete;
 	private:
 		template<class R>
