@@ -75,7 +75,7 @@ struct ImplementCaller : public implement_runtime_class < ImplementCaller, Calle
 };
 CPPCOMPONENTS_REGISTER(ImplementCaller)
 
-std::atomic<int> g_i = 0;
+std::atomic<int> g_i{0};
 struct ImplementCoroutineVoidPtr : public implement_runtime_class < ImplementCoroutineVoidPtr, CoroutineVoidPtr_t>
 {
 	co_type co_;

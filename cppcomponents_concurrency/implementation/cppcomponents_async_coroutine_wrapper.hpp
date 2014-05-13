@@ -18,7 +18,7 @@ namespace cppcomponents_async_coroutine_wrapper{
 
 	cppcomponents::use<cppcomponents::InterfaceUnknown> GetOtherCoroutine();
 
-	CPPCOMPONENTS_CONSTRUCT(ICoroutineVoidPtr, Get, Call, GetOtherCoroutine);
+	CPPCOMPONENTS_CONSTRUCT(ICoroutineVoidPtr, Get, Call, GetOtherCoroutine)
 
 	CPPCOMPONENTS_INTERFACE_EXTRAS(ICoroutineVoidPtr){
 		typedef cppcomponents::use<ICoroutineVoidPtr> CallerType;
@@ -37,7 +37,7 @@ typedef cppcomponents::delegate < void(cppcomponents::use<ICoroutineVoidPtr>), c
 struct ICoroutineVoidPtrFactory : public cppcomponents::define_interface < cppcomponents::uuid < 0x23dd8862 , 0x038f , 0x4eea , 0x898b , 0x1c4ce25a6d45>> {
 	cppcomponents::use<cppcomponents::InterfaceUnknown> Create(cppcomponents::use<CoroutineHandler>,void*);
 
-	CPPCOMPONENTS_CONSTRUCT(ICoroutineVoidPtrFactory, Create);
+	CPPCOMPONENTS_CONSTRUCT(ICoroutineVoidPtrFactory, Create)
 };
 
 inline const char* CoroutineVoidPtrId(){ return "cppcomponents_concurrency!CoroutineVoidPtr"; }
