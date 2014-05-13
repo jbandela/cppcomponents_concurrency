@@ -143,17 +143,17 @@ TEST(Async, async){
 
 	int i = 0;
 
-	auto f = cppcomponents::resumable([](std::atomic<bool>* pdone, int* pi, cppcomponents::awaiter){
+	auto f = cppcomponents::resumable([&done,&i](cppcomponents::awaiter)mutable{
 
 		auto f = cppcomponents::async(launch_on_new_thread_executor::create().QueryInterface<cppcomponents::IExecutor>(),
 			[]{return 10; });
 
-		*pi = awaiter_function(f);
-		pdone->store(true);
+		i = awaiter_function(f);
+		done.store(true);
 
 	});
 
-	f(&done, &i);
+	f();
 	// busy wait
 	while (done.load() == false);
 
@@ -189,19 +189,19 @@ TEST(Async3, async2){
 
 	int i = 0;
 
-	auto f = cppcomponents::resumable([](std::atomic<bool>* pdone, int* pi, cppcomponents::awaiter){
+	auto f = cppcomponents::resumable([&done,&i](cppcomponents::awaiter)mutable{
 		auto f = cppcomponents::resumable([](cppcomponents::awaiter await){
 			auto e = launch_on_new_thread_executor::create().QueryInterface<cppcomponents::IExecutor>();
 			auto f = cppcomponents::async(e,
 				[]{return 10; });
 			return cppcomponents::await(e, f);
 		});
-		*pi = cppcomponents::await(f());
-		pdone->store(true);
+		i = cppcomponents::await(f());
+		done.store(true);
 
 	});
 
-	f(&done, &i);
+	f();
 	// busy wait
 	while (done.load() == false);
 

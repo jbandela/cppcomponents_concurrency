@@ -334,14 +334,11 @@ namespace cppcomponents{
 		struct do_async_functor{
 			F f_;
 			template<class... T>
-			use<IFuture<R>> operator()(T ... t){
+			use<IFuture<R>> operator()(T && ... t){
 				using namespace std::placeholders;
-				auto f = f_;
 				return do_async(
-					[=](cppcomponents::awaiter a)mutable{
-					return f(t..., a);
-				}
-				);
+					
+					std::bind(f_, std::forward<T>(t)..., _1));
 			}
 
 			do_async_functor(F f) : f_{ f }{}
