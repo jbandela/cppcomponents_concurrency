@@ -20,7 +20,7 @@ rm unit_test_exe
 
 echo "Building g++ .so"
 
-g++ -std=c++11 ../../implementation/cppcomponents_concurrency.cpp -I ../../../cppcomponents -I ../../ -shared -o cppcomponents_concurrency.so -lboost_coroutine -fPIC -fvisibility=hidden  -lboost_system -lboost_context -Wl,--no-undefined
+g++ -std=c++11 ../../implementation/cppcomponents_concurrency.cpp -I ../../../cppcomponents -I ../../ -shared -o cppcomponents_concurrency.so -lboost_coroutine -fPIC -fvisibility=hidden  -lboost_system -lboost_context -Wl,--no-undefined -O2
 
 echo "Building clang executable"
 
@@ -30,7 +30,5 @@ echo "Running clang++(exe) with g++(so)"
 
 ./unit_test_exe --gtest_print_time=0
 
-rm *.so
 
-rm unit_test_exe
 
