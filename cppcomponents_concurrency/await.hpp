@@ -368,9 +368,9 @@ namespace cppcomponents{
 			template<typename T>
 			struct get_signature_impl {
 				using type = typename remove_class<
-					decltype(&remove_reference_t<T>::operator())>::type;
+					typename decltype(&remove_reference_t<T>::operator())>::type;
 				using return_type = typename remove_class<
-					decltype(&remove_reference_t<T>::operator())>::return_type;
+					typename decltype(&remove_reference_t<T>::operator())>::return_type;
 			};
 			template<typename R, typename... A>
 			struct get_signature_impl<R(A...)> { using type = typer<R(A...)>; using return_type = R; };
