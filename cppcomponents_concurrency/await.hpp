@@ -69,7 +69,7 @@ namespace cppcomponents{
 		};
 #pragma pack(pop)
 
-		typedef cppcomponents::function < void ()> awaiter_func_type;
+		typedef cppcomponents::function < void()> awaiter_func_type;
 
 		void execute_awaiter_func(void* v){
 			if (!v) return;
@@ -89,7 +89,7 @@ namespace cppcomponents{
 		detail::co_prev_holder pholder;
 
 		template<class R>
-		static func_type get_function(CoType co1,  use < IFuture < R >> t){
+		static func_type get_function(CoType co1, use < IFuture < R >> t){
 			func_type  retfunc = cppcomponents::make_function<func_type>([co1, t]()mutable{
 				auto co = co1;
 				co1 = nullptr;
@@ -100,17 +100,17 @@ namespace cppcomponents{
 					ret.pv_ = et.get_portable_base();
 					co(&ret);
 					detail::execute_awaiter_func(co.Get());
-					
+
 				});
 			});
 			return retfunc;
 		}
 		template<class R>
 		static func_type get_function(CoType co1, use<IExecutor> executor, use < IFuture < R >> t){
-			func_type retfunc = cppcomponents::make_function<func_type>([co1, t,executor]()mutable{
+			func_type retfunc = cppcomponents::make_function<func_type>([co1, t, executor]()mutable{
 				auto co = co1;
 				co1 = nullptr;
-				t.Then(executor,[co](use < IFuture < R >> et)mutable{
+				t.Then(executor, [co](use < IFuture < R >> et)mutable{
 					detail::ret_type ret;
 					ret.error_ = 0;
 					ret.pv_ = nullptr;
@@ -149,7 +149,7 @@ namespace cppcomponents{
 				}
 				ph->prev_ = nullptr;
 			}
-	
+
 		}
 
 
@@ -174,13 +174,17 @@ namespace cppcomponents{
 		}
 
 		~awaiter(){
-				reset_tls(&pholder);
-				remove_pholder_links();
+			reset_tls(&pholder);
+			remove_pholder_links();
 		}
 
 		// Non-copyable
 		//awaiter(const awaiter&) = delete;
-		awaiter& operator=(const awaiter&) = delete;
+		awaiter& operator=(const awaiter&) {
+
+			assert(false);
+			throw std::runtime_error("Invalid awaiter copy");
+		};
 
 		// Ugly movable
 		awaiter(awaiter& other){
@@ -199,7 +203,7 @@ namespace cppcomponents{
 
 			other.pholder.p_ = nullptr;
 			if (get_tls() == &other.pholder){
-				
+
 				cppcomponents_async_coroutine_wrapper::Coroutine::SetThreadLocalAwaiter(&pholder);
 			}
 		}
@@ -217,7 +221,7 @@ namespace cppcomponents{
 			if (t.Ready()){
 				return t;
 			}
-			auto retfunc = get_function(ca.GetOtherCoroutine().template QueryInterface<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr>(),t);
+			auto retfunc = get_function(ca.GetOtherCoroutine().template QueryInterface<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr>(), t);
 			PPL_HELPER_ENTER_EXIT;
 			assert(ca);
 			auto ph = awaiter::get_tls();
@@ -227,29 +231,29 @@ namespace cppcomponents{
 			return static_cast<detail::ret_type*>(ca.Get())->get < use < IFuture<R >> >();
 		}
 		template<class R>
-			static use<IFuture<R>> as_future(CoType ca, use<IExecutor> executor, use < IFuture < R >> t){
-				if (t.Ready()){
-					return t;
-				}
-				auto retfunc = get_function(ca.GetOtherCoroutine().template QueryInterface<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr>(), executor, t);
-				PPL_HELPER_ENTER_EXIT;
-				assert(ca);
-				auto ph = awaiter::get_tls();
-				reset_tls(ph);
-				ca(cross_compiler_interface::cross_conversion<decltype(retfunc)>::to_converted_type(retfunc));
-				set_tls(ph);
-				return static_cast<detail::ret_type*>(ca.Get())->get < use < IFuture<R >> >();
+		static use<IFuture<R>> as_future(CoType ca, use<IExecutor> executor, use < IFuture < R >> t){
+			if (t.Ready()){
+				return t;
+			}
+			auto retfunc = get_function(ca.GetOtherCoroutine().template QueryInterface<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr>(), executor, t);
+			PPL_HELPER_ENTER_EXIT;
+			assert(ca);
+			auto ph = awaiter::get_tls();
+			reset_tls(ph);
+			ca(cross_compiler_interface::cross_conversion<decltype(retfunc)>::to_converted_type(retfunc));
+			set_tls(ph);
+			return static_cast<detail::ret_type*>(ca.Get())->get < use < IFuture<R >> >();
 		}
 
-			template<class R>
-			R operator()(use < IFuture < R >> t){
-				return as_future(t).Get();
-			}
+		template<class R>
+		R operator()(use < IFuture < R >> t){
+			return as_future(t).Get();
+		}
 
-			template<class R>
-			R operator()(use<IExecutor> executor,use < IFuture < R >> t){
-				return as_future(executor,t).Get();
-			}
+		template<class R>
+		R operator()(use<IExecutor> executor, use < IFuture < R >> t){
+			return as_future(executor, t).Get();
+		}
 
 	};
 	namespace detail{
@@ -293,7 +297,7 @@ namespace cppcomponents{
 				try{
 					PPL_HELPER_ENTER_EXIT;
 					awaiter helper(ca);
-					promise.SetResultOf(std::bind(pthis->f_, helper));
+					promise.SetResultOf(pthis->f_);
 					ca(nullptr);
 				}
 				catch (std::exception& e){
@@ -337,8 +341,8 @@ namespace cppcomponents{
 			use<IFuture<R>> operator()(T && ... t){
 				using namespace std::placeholders;
 				return do_async(
-					
-					std::bind(f_, std::forward<T>(t)..., _1));
+
+					std::bind(f_, std::forward<T>(t)...));
 			}
 
 			do_async_functor(F f) : f_{ f }{}
@@ -368,9 +372,9 @@ namespace cppcomponents{
 			template<typename T>
 			struct get_signature_impl {
 				using type = typename remove_class<
-					typename decltype(&remove_reference_t<T>::operator())>::type;
+				decltype(&remove_reference_t<T>::operator())>::type;
 				using return_type = typename remove_class<
-					typename decltype(&remove_reference_t<T>::operator())>::return_type;
+					decltype(&remove_reference_t<T>::operator())>::return_type;
 			};
 			template<typename R, typename... A>
 			struct get_signature_impl<R(A...)> { using type = typer<R(A...)>; using return_type = R; };
@@ -399,9 +403,9 @@ namespace cppcomponents{
 		if (!ph){
 			throw await_error();
 		}
-		use<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr> co{reinterpret_portable_base<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr>(ph->p_),true};
+		use<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr> co{ reinterpret_portable_base<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr>(ph->p_), true };
 		return awaiter::as_future(co, t);
-		
+
 
 	}
 	template<class R>
@@ -412,7 +416,7 @@ namespace cppcomponents{
 			throw await_error();
 		}
 		use<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr> co{ reinterpret_portable_base<cppcomponents_async_coroutine_wrapper::ICoroutineVoidPtr>(ph->p_), true };
-		return awaiter::as_future(co,executor,t);
+		return awaiter::as_future(co, executor, t);
 	}
 	template<class R>
 	R await(use < IFuture < R >> t){
@@ -427,17 +431,17 @@ namespace cppcomponents{
 
 	template<class F>
 	use<IFuture<typename std::result_of<F()>::type>> co_async(use<IExecutor> e, F f){
-		auto func = resumable([f](awaiter)mutable{return f(); });
-		return async(e,func).Unwrap();
+		auto func = resumable([f]()mutable{return f(); });
+		return async(e, func).Unwrap();
 
 
 	}
 	template<class F>
 	use<IFuture<typename std::result_of<F()>::type>> co_async(use<IExecutor> e, use<IExecutor> then_executor, F f){
-		auto func = resumable([f](awaiter)mutable{return f(); });
-		return async(e,then_executor, func).Unwrap();
+		auto func = resumable([f]()mutable{return f(); });
+		return async(e, then_executor, func).Unwrap();
 	}
-	
+
 }
 
 

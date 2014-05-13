@@ -143,7 +143,7 @@ TEST(Async, async){
 
 	int i = 0;
 
-	auto f = cppcomponents::resumable([&done,&i](cppcomponents::awaiter)mutable{
+	auto f = cppcomponents::resumable([&done,&i]()mutable{
 
 		auto f = cppcomponents::async(launch_on_new_thread_executor::create().QueryInterface<cppcomponents::IExecutor>(),
 			[]{return 10; });
@@ -165,19 +165,19 @@ TEST(Async2, async2){
 
 	int i = 0;
 
-	auto f = cppcomponents::resumable([](std::atomic<bool>* pdone, int* pi, cppcomponents::awaiter){
-		auto f = cppcomponents::resumable([](cppcomponents::awaiter await){
+	auto f = cppcomponents::resumable([&done,&i]( ){
+		auto f = cppcomponents::resumable([](){
 
 			auto f = cppcomponents::async(launch_on_new_thread_executor::create().QueryInterface<cppcomponents::IExecutor>(),
 				[]{return 10; });
 			return cppcomponents::await(f);
 		});
-		*pi = cppcomponents::await(f());
-		pdone->store(true);
+		i = cppcomponents::await(f());
+		done.store(true);
 
 	});
 
-	f(&done, &i);
+	f();
 	// busy wait
 	while (done.load() == false);
 
@@ -189,8 +189,8 @@ TEST(Async3, async2){
 
 	int i = 0;
 
-	auto f = cppcomponents::resumable([&done,&i](cppcomponents::awaiter)mutable{
-		auto f = cppcomponents::resumable([](cppcomponents::awaiter await){
+	auto f = cppcomponents::resumable([&done,&i]()mutable{
+		auto f = cppcomponents::resumable([](){
 			auto e = launch_on_new_thread_executor::create().QueryInterface<cppcomponents::IExecutor>();
 			auto f = cppcomponents::async(e,
 				[]{return 10; });
@@ -214,7 +214,7 @@ TEST(Async_Execption, Async_Exception){
 
 	cppcomponents::LoopExecutor executor;
 
-	auto f = cppcomponents::resumable([&](cppcomponents::awaiter){
+	auto f = cppcomponents::resumable([&](){
 		auto f2 = []()->int{
 			cppcomponents::throw_if_error(-101);
 			return 5;
@@ -239,14 +239,14 @@ TEST(Async_Execption, Async_Exception){
 TEST(Test_multithread, coroutine) {
 	std::atomic<bool> test{ false };
 
-	auto co = [](cppcomponents::awaiter await){};
+	auto co = [](){};
 	auto threaded = [&](){
 		auto resfunc = cppcomponents::resumable(co);
 		while (!test.load());
 		resfunc();
 	};
 
-	auto co2 = [](cppcomponents::awaiter await){};
+	auto co2 = [](){};
 	std::vector<std::thread> threads;
 	for (int i = 0; i < 10; ++i){
 		threads.push_back(std::thread{ threaded });
