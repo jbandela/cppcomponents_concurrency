@@ -256,7 +256,7 @@ namespace cppcomponents{
 
 
 			F f_;
-			typedef typename std::result_of<F(awaiter)>::type return_type;
+			typedef typename std::result_of<F()>::type return_type;
 			Future<return_type> future_;
 
 
@@ -295,13 +295,13 @@ namespace cppcomponents{
 		struct return_helper{};
 
 		template<class R>
-		struct return_helper<R(awaiter)>{
+		struct return_helper<R()>{
 			typedef R type;
 		};
 
 
 		template<class F>
-		use<IFuture<typename std::result_of<F(awaiter)>::type>> do_async(F f){
+		use<IFuture<typename std::result_of<F()>::type>> do_async(F f){
 			detail::simple_async_function_holder<F> async_func_holder(f);
 			return async_func_holder.run();
 		}
