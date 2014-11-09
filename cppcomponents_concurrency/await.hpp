@@ -74,7 +74,7 @@ namespace cppcomponents{
 		void execute_awaiter_func(void* v){
 			if (!v) return;
 			auto p = static_cast<cppcomponents::portable_base*>(v);
-			awaiter_func_type f{ cross_compiler_interface::cross_conversion<awaiter_func_type>::to_original_type(p) };
+			awaiter_func_type f{ cppcomponents::cross_conversion<awaiter_func_type>::to_original_type(p) };
 			f();
 		}
 
@@ -199,7 +199,7 @@ namespace cppcomponents{
 			assert(ca);
 			auto ph = awaiter::get_tls();
 			reset_tls(ph);
-			ca(cross_compiler_interface::cross_conversion<decltype(retfunc)>::to_converted_type(retfunc));
+			ca(cppcomponents::cross_conversion<decltype(retfunc)>::to_converted_type(retfunc));
 			set_tls(ph);
 			return static_cast<detail::ret_type*>(ca.Get())->get < use < IFuture<R >> >();
 		}
@@ -213,7 +213,7 @@ namespace cppcomponents{
 			assert(ca);
 			auto ph = awaiter::get_tls();
 			reset_tls(ph);
-			ca(cross_compiler_interface::cross_conversion<decltype(retfunc)>::to_converted_type(retfunc));
+			ca(cppcomponents::cross_conversion<decltype(retfunc)>::to_converted_type(retfunc));
 			set_tls(ph);
 			return static_cast<detail::ret_type*>(ca.Get())->get < use < IFuture<R >> >();
 		}
@@ -327,8 +327,8 @@ namespace cppcomponents{
 
 			// Calculate return type of callable
 			// Adapted from http://stackoverflow.com/questions/11893141/inferring-the-call-signature-of-a-lambda-or-arbitrary-callable-for-make-functio
-			template<class F>
-			using typer = F;
+
+			using cppcomponents::detail::typer;
 
 			template<typename T> struct remove_class { };
 			template<typename C, typename R, typename... A>
